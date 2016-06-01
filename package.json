@@ -1,6 +1,9 @@
 {
   "private": true,
   "license": "ISC",
+  "scripts": {
+    "test": "echo 'No tests yet'"
+  },
   "dependencies": {},
   "devDependencies": {}
 }
