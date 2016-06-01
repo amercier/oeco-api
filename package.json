@@ -2,8 +2,11 @@
   "private": true,
   "license": "ISC",
   "scripts": {
-    "test": "echo 'No tests yet'"
+    "test": "mocha specs --recursive"
   },
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "code": "^3.0.0",
+    "mocha": "^2.5.3"
+  }
 }
