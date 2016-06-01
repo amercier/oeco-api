@@ -3,6 +3,9 @@ language: node_js
 node_js: 6.2
 script:
 - npm test -- -- --timeout 10000
+after_success:
+- 'cat coverage/lcov.info | ./node_modules/.bin/codecov'
+- 'cat coverage/lcov.info | ./node_modules/.bin/codeclimate-test-reporter'
 cache:
   directories:
   - $HOME/.nvm
