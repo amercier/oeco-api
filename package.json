@@ -2,11 +2,25 @@
   "private": true,
   "license": "ISC",
   "scripts": {
-    "test": "mocha specs --recursive"
+    "mocha": "mocha specs --recursive",
+    "tdd": "export NODE_ENV=development; npm run mocha -- --watch --growl",
+    "test": "export NODE_ENV=test; rimraf coverage && nyc npm run mocha"
   },
   "dependencies": {},
   "devDependencies": {
     "code": "^3.0.0",
-    "mocha": "^2.5.3"
+    "codeclimate-test-reporter": "^0.3.1",
+    "codecov": "^1.0.1",
+    "mocha": "^2.5.3",
+    "nyc": "^6.4.4",
+    "rimraf": "^2.5.2"
+  },
+  "nyc": {
+    "exclude": "specs/**",
+    "reporter": [
+      "lcovonly",
+      "html",
+      "text"
+    ]
   }
 }
