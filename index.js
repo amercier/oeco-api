@@ -9,13 +9,15 @@ const config = {
   },
 };
 
+// MongoDB
+const { mongodb } = config;
+const mongoUrl = `mongodb://${mongodb.host}/${mongodb.db}`;
+mongoose.connect(mongoUrl);
+console.log(`Connected to MongoDB at ${mongoUrl}`);
+
+// Express
 module.exports = function serverFactory() {
   const app = express();
-
-  const { host, db } = config.mongodb;
-  const mongoUrl = `mongodb://${host}/${db}`;
-  mongoose.connect(mongoUrl);
-  console.log(`Connected to MongoDB at ${mongoUrl}`);
 
   app.get('/', (request, response) => {
     response.send(`Hello World!\n`);
