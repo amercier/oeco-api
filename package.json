@@ -9,10 +9,10 @@
   },
   "main": "index.js",
   "dependencies": {
-    "express": "^4.13.4"
+    "express": "^4.13.4",
+    "mongoose": "^4.4.19"
   },
   "devDependencies": {
-    "code": "^3.0.0",
     "codeclimate-test-reporter": "^0.3.1",
     "codecov": "^1.0.1",
     "eslint": "^2.11.1",
