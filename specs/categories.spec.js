@@ -1,6 +1,10 @@
+const { promisify } = require('bluebird');
+const { partial } = require('lodash');
 const supertest = require('supertest');
 const { db, serve } = require('../index');
 const { Category } = require('../app/models');
+
+const removeAllCategories = promisify(partial(Category.remove.bind(Category), {}));
 
 describe('/categories', () => {
   let server;
@@ -24,15 +28,7 @@ describe('/categories', () => {
       return Promise.all(queries);
     });
 
-    afterEach(() =>
-      new Promise((resolve, reject) => Category.remove({}, err => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(err);
-        }
-      }))
-    );
+    afterEach(removeAllCategories);
 
     it('return all categories', () => supertest(server)
       .get('/categories')
