@@ -1,17 +1,17 @@
 const supertest = require('supertest');
-const serverFactory = require('../index');
-
-let server;
-
-beforeEach(() => {
-  server = serverFactory();
-});
-
-afterEach(() => {
-  server.close();
-});
+const { serve } = require('../index');
 
 describe('/', () => {
+  let server;
+
+  beforeEach(() => {
+    server = serve();
+  });
+
+  afterEach(() => {
+    server.close();
+  });
+
   describe('GET /', () => {
     it('displays "Hello World!"', () => supertest(server)
       .get('/')

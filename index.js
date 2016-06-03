@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const { Category } = require('./app/models');
 
 const config = {
   port: process.env.PORT || 8080,
@@ -13,20 +14,46 @@ const config = {
 const { mongodb } = config;
 const mongoUrl = `mongodb://${mongodb.host}/${mongodb.db}`;
 mongoose.connect(mongoUrl);
-console.log(`Connected to MongoDB at ${mongoUrl}`);
+
+const db = new Promise((resolve, reject) => {
+  const { connection } = mongoose;
+
+  connection.once('error', error => {
+    console.error('MongoDB connection error:', error);
+    reject(error);
+  });
+
+  connection.once('open', () => {
+    console.log(`Connected to MongoDB at ${mongoUrl}`);
+    resolve(connection);
+  });
+});
 
 // Express
-module.exports = function serverFactory() {
-  const app = express();
+module.exports = {
+  db,
+  serve() {
+    const app = express();
 
-  app.get('/', (request, response) => {
-    response.send(`Hello World!\n`);
-  });
+    app.get('/', (request, response) => {
+      response.send(`Hello World!\n`);
+    });
 
-  const { port } = config;
-  const server = app.listen(port, () => {
-    console.log(`Application listening on port ${server.address().port}...`);
-  });
+    app.get('/categories', (request, response) => {
+      Category.find({}, (err, results) => {
+        if (err) {
+          throw err;
+        }
+        const categories = results.map(result => ({ name: result.name }));
+        response.json(categories);
+      });
+    });
 
-  return server;
+    const { port } = config;
+    const server = app.listen(port, () => {
+      console.log(`Application listening on port ${server.address().port}...`);
+    });
+
+    return server;
+  },
 };
