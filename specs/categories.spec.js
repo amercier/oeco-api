@@ -24,6 +24,16 @@ describe('/categories', () => {
       return Promise.all(queries);
     });
 
+    afterEach(() =>
+      new Promise((resolve, reject) => Category.remove({}, err => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(err);
+        }
+      }))
+    );
+
     it('return all categories', () => supertest(server)
       .get('/categories')
       .expect(200, categories)
