@@ -1,3 +1,4 @@
+const { promisify } = require('bluebird');
 const express = require('express');
 const mongoose = require('mongoose');
 const { Category } = require('./app/models');
@@ -40,10 +41,8 @@ module.exports = {
     });
 
     app.get('/categories', (request, response) => {
-      Category.find({}).sort({ name: 1 }).exec((err, results) => {
-        if (err) {
-          throw err;
-        }
+      const query = Category.find({}).sort({ name: 1 });
+      promisify(query.exec.bind(query))().then(results => {
         const categories = results.map(result => ({ id: result.id, name: result.name }));
         response.json(categories);
       });
