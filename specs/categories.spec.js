@@ -9,6 +9,8 @@ const removeAllCategories = promisify(partial(Category.remove.bind(Category), {}
 describe('/categories', () => {
   let server;
 
+  before(removeAllCategories);
+
   beforeEach(() => {
     server = serve();
     return db;

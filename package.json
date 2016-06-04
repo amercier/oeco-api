@@ -5,7 +5,8 @@
     "lint": "eslint .",
     "mocha": "mocha specs --recursive",
     "tdd": "export NODE_ENV=development; npm run mocha -- --watch --growl",
-    "test": "export NODE_ENV=test; npm run lint && rimraf coverage && nyc npm run mocha"
+    "test": "export NODE_ENV=test; npm run lint && rimraf coverage && nyc npm run mocha",
+    "watch": "NODE_ENV=development; node-dev server.js"
   },
   "main": "index.js",
   "dependencies": {
@@ -23,6 +24,8 @@
     "eslint-plugin-import": "^1.8.1",
     "lodash": "^4.13.1",
     "mocha": "^2.5.3",
+    "node-dev": "^3.1.3",
+    "node-notifier": "^4.6.0",
     "nyc": "^6.4.4",
     "rimraf": "^2.5.2",
     "supertest": "^1.2.0"
