@@ -21,7 +21,7 @@ describe('/categories', () => {
   describe('GET /categories', () => {
     const categories = new Array(9)
       .fill(null)
-      .map((v, k) => ({ name: `Category ${k + 1}` }));
+      .map((v, k) => ({ id: `category-${k + 1}`, name: `Category ${k + 1}` }));
 
     beforeEach(() => {
       const queries = categories.map(category => new Category(category).save());

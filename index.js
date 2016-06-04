@@ -44,7 +44,7 @@ module.exports = {
         if (err) {
           throw err;
         }
-        const categories = results.map(result => ({ name: result.name }));
+        const categories = results.map(result => ({ id: result.id, name: result.name }));
         response.json(categories);
       });
     });
