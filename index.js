@@ -2,6 +2,7 @@ const { promisify } = require('bluebird');
 const express = require('express');
 const mongoose = require('mongoose');
 const { Category } = require('./app/models');
+const { info, error } = require('./app/console');
 
 const config = {
   port: process.env.PORT || 8080,
@@ -19,13 +20,13 @@ mongoose.connect(mongoUrl);
 const db = new Promise((resolve, reject) => {
   const { connection } = mongoose;
 
-  connection.once('error', error => {
-    console.error('MongoDB connection error:', error);
+  connection.once('error', err => {
+    error('MongoDB connection error:', err);
     reject(error);
   });
 
   connection.once('open', () => {
-    console.log(`Connected to MongoDB at ${mongoUrl}`);
+    info(`Connected to MongoDB at ${mongoUrl}`);
     resolve(connection);
   });
 });
@@ -50,7 +51,7 @@ module.exports = {
 
     const { port } = config;
     const server = app.listen(port, () => {
-      console.log(`Application listening on port ${server.address().port}...`);
+      info(`Application listening on port ${server.address().port}...`);
     });
 
     return server;
