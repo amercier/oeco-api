@@ -40,7 +40,7 @@ module.exports = {
     });
 
     app.get('/categories', (request, response) => {
-      Category.find({}, (err, results) => {
+      Category.find({}).sort({ name: 1 }).exec((err, results) => {
         if (err) {
           throw err;
         }

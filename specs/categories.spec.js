@@ -19,7 +19,7 @@ describe('/categories', () => {
   });
 
   describe('GET /categories', () => {
-    const categories = new Array(10)
+    const categories = new Array(9)
       .fill(null)
       .map((v, k) => ({ name: `Category ${k + 1}` }));
 
