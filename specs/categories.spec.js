@@ -18,7 +18,7 @@ describe('/categories', () => {
       .map((v, k) => ({ id: `category-${k + 1}`, name: `Category ${k + 1}` }));
 
     beforeEach(() => {
-      const queries = categories.map(category => new context.models.Category(category).save());
+      const queries = categories.map(category => new Category(category).save());
       return Promise.all(queries);
     });
 
