@@ -1,7 +1,8 @@
 const { promisify } = require('bluebird');
 const express = require('express');
+const { fromPairs, toPairs } = require('lodash');
 const mongoose = require('mongoose');
-const { Category } = require('./app/models');
+const schemas = require('./app/schemas');
 const { info, error } = require('./app/console');
 
 const config = {
@@ -13,28 +14,34 @@ const config = {
 };
 
 // MongoDB
-const { mongodb } = config;
-const mongoUrl = `mongodb://${mongodb.host}/${mongodb.db}`;
-mongoose.connect(mongoUrl);
+function setupMongoose() {
+  return new Promise((resolve, reject) => {
+    const { mongodb } = config;
 
-const db = new Promise((resolve, reject) => {
-  const { connection } = mongoose;
+    const mongoUrl = `mongodb://${mongodb.host}/${mongodb.db}`;
+    const db = mongoose.createConnection(mongoUrl);
 
-  connection.once('error', err => {
-    error('MongoDB connection error:', err);
-    reject(error);
+    const models = fromPairs(
+      toPairs(schemas).map(
+        ([name, model]) => [name, db.model(name, model)]
+      )
+    );
+
+    db.once('error', err => {
+      error('MongoDB connection error:', err);
+      reject(error);
+    });
+
+    db.once('open', () => {
+      info(`Connected to MongoDB at ${mongoUrl}`);
+      resolve({ db, models });
+    });
   });
-
-  connection.once('open', () => {
-    info(`Connected to MongoDB at ${mongoUrl}`);
-    resolve(connection);
-  });
-});
+}
 
 // Express
-module.exports = {
-  db,
-  serve() {
+function serve() {
+  return setupMongoose().then(({ db, models }) => new Promise(resolve => {
     const app = express();
 
     app.get('/', (request, response) => {
@@ -42,7 +49,7 @@ module.exports = {
     });
 
     app.get('/categories', (request, response) => {
-      const query = Category.find({}).sort({ name: 1 });
+      const query = models.Category.find({}).sort({ name: 1 });
       promisify(query.exec.bind(query))().then(results => {
         const categories = results.map(result => ({ id: result.id, name: result.name }));
         response.json(categories);
@@ -52,8 +59,9 @@ module.exports = {
     const { port } = config;
     const server = app.listen(port, () => {
       info(`Application listening on port ${server.address().port}...`);
+      resolve({ server, db, models });
     });
+  }));
+}
 
-    return server;
-  },
-};
+module.exports = serve;

@@ -1,24 +1,16 @@
-const { promisify } = require('bluebird');
-const { partial } = require('lodash');
 const supertest = require('supertest');
-const { db, serve } = require('../index');
-const { Category } = require('../app/models');
-
-const removeAllCategories = promisify(partial(Category.remove.bind(Category), {}));
+const { createContext, removeAll } = require('./helpers');
 
 describe('/categories', () => {
-  let server;
+  let Category;
+  const context = createContext();
 
-  before(removeAllCategories);
-
-  beforeEach(() => {
-    server = serve();
-    return db;
+  before(() => {
+    Category = context.models.Category;
   });
 
-  afterEach(() => {
-    server.close();
-  });
+  beforeEach(() => removeAll(Category));
+  afterEach(() => removeAll(Category));
 
   describe('GET /categories', () => {
     const categories = new Array(9)
@@ -26,13 +18,11 @@ describe('/categories', () => {
       .map((v, k) => ({ id: `category-${k + 1}`, name: `Category ${k + 1}` }));
 
     beforeEach(() => {
-      const queries = categories.map(category => new Category(category).save());
+      const queries = categories.map(category => new context.models.Category(category).save());
       return Promise.all(queries);
     });
 
-    afterEach(removeAllCategories);
-
-    it('return all categories', () => supertest(server)
+    it('return all categories', () => supertest(context.server)
       .get('/categories')
       .expect(200, categories)
     );

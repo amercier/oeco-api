@@ -1,7 +1,7 @@
-const mongoose = require('mongoose');
+const { Schema } = require('mongoose');
 const { Slug } = require('./types');
 
-const Category = mongoose.model('Category', {
+const Category = new Schema({
   id: { type: Slug, trim: true, unique: true, index: true },
   name: { type: String, trim: true, unique: true },
 });

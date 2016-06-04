@@ -1,19 +1,11 @@
 const supertest = require('supertest');
-const { serve } = require('../index');
+const { createContext } = require('./helpers');
 
 describe('/', () => {
-  let server;
-
-  beforeEach(() => {
-    server = serve();
-  });
-
-  afterEach(() => {
-    server.close();
-  });
+  const context = createContext();
 
   describe('GET /', () => {
-    it('displays "Hello World!"', () => supertest(server)
+    it('displays "Hello World!"', () => supertest(context.server)
       .get('/')
       .expect(200, 'Hello World!\n')
     );

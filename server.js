@@ -1,1 +1,2 @@
-require('.').serve();
+const serve = require('.');
+serve();
