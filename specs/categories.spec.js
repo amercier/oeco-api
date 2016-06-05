@@ -75,4 +75,25 @@ describe('/categories', () => {
       });
     });
   });
+
+  describe('DELETE /categories/:id', () => {
+    const category = { id: 'existing-category', name: 'Existing Category' };
+    beforeEach(() => new Category(category).save());
+
+    it('deletes the category', () => supertest(context.server)
+      .delete(`/categories/${category.id}`)
+      .then(() => Category.findOne({ id: category.id }))
+      .then(result => expect(result).to.be.null)
+    );
+
+    it('returns 204 No Content', () => supertest(context.server)
+      .delete(`/categories/${category.id}`)
+      .expect(204, '')
+    );
+
+    it('returns 404 Not Found if the category doesn\'t exist', () => supertest(context.server)
+      .delete('/categories/unexisting-category')
+      .expect(404, '')
+    );
+  });
 });
