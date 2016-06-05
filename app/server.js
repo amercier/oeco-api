@@ -1,6 +1,7 @@
 const { promisify } = require('bluebird');
 const bodyParser = require('body-parser');
 const express = require('express');
+const { assign } = require('lodash');
 const { info } = require('./console');
 const config = require('./config');
 const setupMongoose = require('./db');
@@ -67,6 +68,32 @@ module.exports = function serve() {
       });
 
     app.route('/categories/:id')
+      .put((request, response) => {
+        Promise.resolve([request.params, request.body])
+          .then(([params, payload]) => {
+            const query = Category.findOne({ id: params.id });
+            return Promise.all([
+              promisify(query.exec.bind(query))(),
+              payload,
+            ]);
+          })
+          .then(([category, payload]) => {
+            if (!category) {
+              return response.status(NOT_FOUND).json();
+            }
+            const query = Category.update(
+              { _id: category._id }, // eslint-disable-line no-underscore-dangle
+              { $set: { id: payload.id, name: payload.name } }
+            );
+            return promisify(query.exec.bind(query))()
+              .then(() => {
+                const q = Category.findOne({ _id: category._id }); // eslint-disable-line
+                return promisify(q.exec.bind(q))();
+              })
+              .then(result => response.status(OK).json({ id: result.id, name: result.name }));
+          })
+          .catch(errorFormatter(response));
+      })
       .delete((request, response) => {
         Promise.resolve(request.params)
           .then(params => {
