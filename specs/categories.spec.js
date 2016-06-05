@@ -2,6 +2,14 @@ const { expect } = require('chai');
 const { defaults, omit } = require('lodash');
 const supertest = require('supertest-as-promised');
 const { setup, removeAll } = require('./helpers');
+const {
+  OK,
+  CREATED,
+  NO_CONTENT,
+  BAD_REQUEST,
+  NOT_FOUND,
+  CONFLICT,
+} = require('http-status-codes');
 
 describe('/categories', () => {
   let Category;
@@ -26,7 +34,7 @@ describe('/categories', () => {
 
     it('return all categories', () => supertest(context.server)
       .get('/categories')
-      .expect(200, categories)
+      .expect(OK, categories)
     );
   });
 
@@ -43,21 +51,21 @@ describe('/categories', () => {
     it('returns the created category', () => supertest(context.server)
       .post('/categories')
       .send(category)
-      .expect(201, category)
+      .expect(CREATED, category)
     );
 
     // Required fields
     ['id', 'name'].forEach(key => {
-      it(`returns 404 Bad Request if ${key} is missing`, () => supertest(context.server)
+      it(`returns 400 Bad Request if ${key} is missing`, () => supertest(context.server)
         .post('/categories')
         .send(omit(category, [key]))
-        .expect(400, { error: `missing_${key}` })
+        .expect(BAD_REQUEST, { error: `missing_${key}` })
       );
 
-      it(`returns 404 Bad Request if ${key} is empty`, () => supertest(context.server)
+      it(`returns 400 Bad Request if ${key} is empty`, () => supertest(context.server)
         .post('/categories')
         .send(defaults({ [key]: '' }, category))
-        .expect(400, { error: `missing_${key}` })
+        .expect(BAD_REQUEST, { error: `missing_${key}` })
       );
     });
 
@@ -70,7 +78,7 @@ describe('/categories', () => {
         it(`returns 409 Conflict if ${key} already exists`, () => supertest(context.server)
           .post('/categories')
           .send(defaults({ [key]: existingCategory[key] }, category))
-          .expect(409, { error: `existing_${key}` })
+          .expect(CONFLICT, { error: `existing_${key}` })
         );
       });
     });
@@ -88,12 +96,12 @@ describe('/categories', () => {
 
     it('returns 204 No Content', () => supertest(context.server)
       .delete(`/categories/${category.id}`)
-      .expect(204, '')
+      .expect(NO_CONTENT, '')
     );
 
     it('returns 404 Not Found if the category doesn\'t exist', () => supertest(context.server)
       .delete('/categories/unexisting-category')
-      .expect(404, '')
+      .expect(NOT_FOUND, '')
     );
   });
 });

@@ -4,18 +4,27 @@ const express = require('express');
 const { info } = require('./console');
 const config = require('./config');
 const setupMongoose = require('./db');
+const {
+  OK,
+  CREATED,
+  NO_CONTENT,
+  BAD_REQUEST,
+  NOT_FOUND,
+  CONFLICT,
+  INTERNAL_SERVER_ERROR,
+} = require('http-status-codes');
 
 function errorFormatter(response) {
   return err => {
-    let code = err.code || 500;
+    let code = err.code || INTERNAL_SERVER_ERROR;
     let message = err.message || `${err}`;
     if (err.name && err.name === 'ValidationError') {
       const firstError = err.errors[Object.keys(err.errors)[0]];
       message = firstError.message;
       if (/^missing_/.test(message)) {
-        code = 400;
+        code = BAD_REQUEST;
       } else if (/^existing_/.test(message)) {
-        code = 409;
+        code = CONFLICT;
       }
     }
     response.status(code).send({ error: message });
@@ -44,7 +53,7 @@ module.exports = function serve() {
           })
           .then(results => {
             const categories = results.map(result => ({ id: result.id, name: result.name }));
-            response.json(categories);
+            response.status(OK).json(categories);
           })
           .catch(errorFormatter(response));
       })
@@ -53,7 +62,7 @@ module.exports = function serve() {
           .then(payload => new Category({ id: payload.id, name: payload.name }))
           .then(category => promisify(category.validate.bind(category))().then(() => category))
           .then(category => category.save())
-          .then(result => response.status(201).json({ id: result.id, name: result.name }))
+          .then(result => response.status(CREATED).json({ id: result.id, name: result.name }))
           .catch(errorFormatter(response));
       });
 
@@ -66,10 +75,10 @@ module.exports = function serve() {
           })
           .then(category => {
             if (!category) {
-              return response.status(404).json();
+              return response.status(NOT_FOUND).json();
             }
             return category.remove()
-              .then(() => response.status(204).json());
+              .then(() => response.status(NO_CONTENT).json());
           })
           .catch(errorFormatter(response));
       });
