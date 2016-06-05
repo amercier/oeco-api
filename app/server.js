@@ -57,6 +57,23 @@ module.exports = function serve() {
           .catch(errorFormatter(response));
       });
 
+    app.route('/categories/:id')
+      .delete((request, response) => {
+        Promise.resolve(request.params)
+          .then(params => {
+            const query = Category.findOne({ id: params.id });
+            return promisify(query.exec.bind(query))();
+          })
+          .then(category => {
+            if (!category) {
+              return response.status(404).json();
+            }
+            return category.remove()
+              .then(() => response.status(204).json());
+          })
+          .catch(errorFormatter(response));
+      });
+
     const { port } = config;
     const server = app.listen(port, () => {
       info(`Application listening on port ${server.address().port}...`);
