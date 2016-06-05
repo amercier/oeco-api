@@ -1,11 +1,11 @@
 const { expect } = require('chai');
 const { defaults, omit } = require('lodash');
 const supertest = require('supertest-as-promised');
-const { createContext, removeAll } = require('./helpers');
+const { setup, removeAll } = require('./helpers');
 
 describe('/categories', () => {
   let Category;
-  const context = createContext();
+  const context = setup();
 
   before(() => {
     Category = context.models.Category;

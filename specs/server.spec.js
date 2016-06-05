@@ -1,8 +1,8 @@
 const supertest = require('supertest');
-const { createContext } = require('./helpers');
+const { setup } = require('./helpers');
 
 describe('/', () => {
-  const context = createContext();
+  const context = setup();
 
   describe('GET /', () => {
     it('displays "Hello World!"', () => supertest(context.server)

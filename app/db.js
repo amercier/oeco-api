@@ -5,12 +5,12 @@ const { info, error } = require('./console');
 const config = require('./config');
 
 // MongoDB
-module.exports = function setupMongoose() {
+module.exports = function setupMongoose(mongo = mongoose) {
   return new Promise((resolve, reject) => {
     const { mongodb } = config;
 
     const mongoUrl = `mongodb://${mongodb.host}/${mongodb.db}`;
-    const db = mongoose.createConnection(mongoUrl);
+    const db = mongo.createConnection(mongoUrl);
 
     const models = fromPairs(
       toPairs(schemas).map(
@@ -20,7 +20,7 @@ module.exports = function setupMongoose() {
 
     db.once('error', err => {
       error('MongoDB connection error:', err);
-      reject(error);
+      reject(err);
     });
 
     db.once('open', () => {
