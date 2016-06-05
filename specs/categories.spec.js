@@ -1,4 +1,6 @@
-const supertest = require('supertest');
+const { expect } = require('chai');
+const { defaults, omit } = require('lodash');
+const supertest = require('supertest-as-promised');
 const { createContext, removeAll } = require('./helpers');
 
 describe('/categories', () => {
@@ -26,5 +28,51 @@ describe('/categories', () => {
       .get('/categories')
       .expect(200, categories)
     );
+  });
+
+  describe('POST /categories', () => {
+    const category = { id: 'test-category', name: 'Test Category' };
+
+    it('creates a new category', () => supertest(context.server)
+      .post('/categories')
+      .send(category)
+      .then(() => Category.findOne({ id: category.id }))
+      .then(result => expect(result).to.deep.include(category))
+    );
+
+    it('returns the created category', () => supertest(context.server)
+      .post('/categories')
+      .send(category)
+      .expect(201, category)
+    );
+
+    // Required fields
+    ['id', 'name'].forEach(key => {
+      it(`returns 404 Bad Request if ${key} is missing`, () => supertest(context.server)
+        .post('/categories')
+        .send(omit(category, [key]))
+        .expect(400, { error: `missing_${key}` })
+      );
+
+      it(`returns 404 Bad Request if ${key} is empty`, () => supertest(context.server)
+        .post('/categories')
+        .send(defaults({ [key]: '' }, category))
+        .expect(400, { error: `missing_${key}` })
+      );
+    });
+
+    // Unique fields
+    describe('when a resource already exists', () => {
+      const existingCategory = { id: 'existing-category', name: 'Existing Category' };
+      beforeEach(() => new Category(existingCategory).save());
+
+      ['id', 'name'].forEach(key => {
+        it(`returns 409 Conflict if ${key} already exists`, () => supertest(context.server)
+          .post('/categories')
+          .send(defaults({ [key]: existingCategory[key] }, category))
+          .expect(409, { error: `existing_${key}` })
+        );
+      });
+    });
   });
 });

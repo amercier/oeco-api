@@ -10,10 +10,15 @@ function errorFormatter(response) {
     let code = err.code || 500;
     let message = err.message || `${err}`;
     if (err.name && err.name === 'ValidationError') {
-      code = 400;
-      message = err.errors[Object.keys(err.errors)[0]].message;
+      const firstError = err.errors[Object.keys(err.errors)[0]];
+      message = firstError.message;
+      if (/^missing_/.test(message)) {
+        code = 400;
+      } else if (/^existing_/.test(message)) {
+        code = 409;
+      }
     }
-    response.status(code).send({ message });
+    response.status(code).send({ error: message });
   };
 }
 
@@ -45,8 +50,10 @@ module.exports = function serve() {
       })
       .post((request, response) => {
         Promise.resolve(request.body)
-          .then(payload => new Category({ id: payload.id, name: payload.name }).save())
-          .then(result => response.json({ id: result.id, name: result.name }))
+          .then(payload => new Category({ id: payload.id, name: payload.name }))
+          .then(category => promisify(category.validate.bind(category))().then(() => category))
+          .then(category => category.save())
+          .then(result => response.status(201).json({ id: result.id, name: result.name }))
           .catch(errorFormatter(response));
       });
 

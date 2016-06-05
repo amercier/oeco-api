@@ -8,7 +8,7 @@ class Slug extends SchemaType {
   }
 
   cast(value) {
-    return slug(`${value}`.toLowerCase());
+    return slug(`${value}`.toLowerCase()) || null;
   }
 }
 

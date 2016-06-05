@@ -1,12 +1,23 @@
 const { Schema } = require('mongoose');
-const beautifyUnique = require('mongoose-beautiful-unique-validation');
+const uniqueValidator = require('mongoose-unique-validator');
 const { Slug } = require('./types');
 
 const Category = new Schema({
-  id: { type: Slug, required: true, trim: true, unique: true, index: true },
-  name: { type: String, required: true, trim: true, unique: true },
+  id: {
+    type: Slug,
+    required: [true, 'missing_id'],
+    trim: true,
+    unique: true,
+    index: true,
+  },
+  name: {
+    type: String,
+    required: [true, 'missing_name'],
+    trim: true,
+    unique: true,
+  },
 });
 
-Category.plugin(beautifyUnique);
+Category.plugin(uniqueValidator, { message: 'existing_{PATH}' });
 
 module.exports = { Category };
