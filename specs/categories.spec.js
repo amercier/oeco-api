@@ -84,6 +84,24 @@ describe('/categories', () => {
     });
   });
 
+  describe('PUT /categories/:id', () => {
+    const category = { id: 'existing-category', name: 'Existing Category' };
+    const editedCategory = { id: 'edited-category', name: 'Edited Category' };
+    beforeEach(() => new Category(category).save());
+
+    it('updates the category', () => supertest(context.server)
+      .put(`/categories/${category.id}`)
+      .send(editedCategory)
+      .expect(OK, editedCategory)
+    );
+
+    it('returns 404 Not Found if the category doesn\'t exist', () => supertest(context.server)
+      .put('/categories/unexisting-category')
+      .send(editedCategory)
+      .expect(NOT_FOUND, '')
+    );
+  });
+
   describe('DELETE /categories/:id', () => {
     const category = { id: 'existing-category', name: 'Existing Category' };
     beforeEach(() => new Category(category).save());

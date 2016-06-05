@@ -1,7 +1,6 @@
 const { promisify } = require('bluebird');
 const bodyParser = require('body-parser');
 const express = require('express');
-const { assign } = require('lodash');
 const { info } = require('./console');
 const config = require('./config');
 const setupMongoose = require('./db');

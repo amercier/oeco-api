@@ -9,7 +9,7 @@ const removeAll = model => promisify(partial(model.remove.bind(model), {}))();
 function tearDown(context) {
   return promisify(context.db.close.bind(context.db))()
     .then(() => info('Mongoose disconnected'))
-    .then(promisify(context.server.close.bind(context.server))())
+    .then(() => promisify(context.server.close.bind(context.server))())
     .then(() => info('Express stopped'));
 }
 
