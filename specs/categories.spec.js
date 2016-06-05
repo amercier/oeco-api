@@ -100,6 +100,30 @@ describe('/categories', () => {
       .send(editedCategory)
       .expect(NOT_FOUND, '')
     );
+
+    // Required fields
+    ['id', 'name'].forEach(key => {
+      it(`returns 400 Bad Request if ${key} is missing`, () => supertest(context.server)
+        .put(`/categories/${category.id}`)
+        .send(omit(editedCategory, [key]))
+        .expect(BAD_REQUEST, { error: `missing_${key}` })
+      );
+
+      it(`returns 400 Bad Request if ${key} is empty`, () => supertest(context.server)
+        .put(`/categories/${category.id}`)
+        .send(defaults({ [key]: '' }, editedCategory))
+        .expect(BAD_REQUEST, { error: `missing_${key}` })
+      );
+    });
+
+    // Unique fields
+    ['id', 'name'].forEach(key => {
+      it(`returns 409 Conflict if ${key} already exists`, () => supertest(context.server)
+        .put(`/categories/${category.id}`)
+        .send(defaults({ [key]: category[key] }, editedCategory))
+        .expect(CONFLICT, { error: `existing_${key}` })
+      );
+    });
   });
 
   describe('DELETE /categories/:id', () => {
