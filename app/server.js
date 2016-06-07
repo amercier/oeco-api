@@ -76,6 +76,11 @@ module.exports = function serve() {
               payload,
             ]);
           })
+          .then(([existingCategory, payload]) => {
+            const category = new Category({ id: payload.id, name: payload.name });
+            return promisify(category.validate.bind(category))()
+              .then(() => ([existingCategory, payload]));
+          })
           .then(([category, payload]) => {
             if (!category) {
               return response.status(NOT_FOUND).json();
