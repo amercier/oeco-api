@@ -2,6 +2,7 @@ const { async: aasync, await: aawait } = require('asyncawait');
 const { promisify } = require('bluebird');
 const bodyParser = require('body-parser');
 const express = require('express');
+const { partialRight } = require('lodash');
 const { info } = require('./console');
 const config = require('./config');
 const setupMongoose = require('./db');
@@ -32,9 +33,12 @@ function errorFormatter(response) {
   };
 }
 
-function validate(document) {
-  return promisify(document.validate.bind(document))();
+function promisifier(object, method) {
+  return promisify(object[method].bind(object));
 }
+
+const validator = partialRight(promisifier, 'validate');
+const executor = partialRight(promisifier, 'exec');
 
 // Express
 module.exports = function serve() {
@@ -52,8 +56,7 @@ module.exports = function serve() {
     app.route('/categories')
       .get(aasync((_, response) => {
         try {
-          const query = Category.find({}).sort({ name: 1 });
-          const results = aawait(promisify(query.exec.bind(query))());
+          const results = aawait(executor(Category.find({}).sort({ name: 1 })));
           const categories = results.map(result => ({ id: result.id, name: result.name }));
           response.status(OK).json(categories);
         } catch (err) {
@@ -63,7 +66,7 @@ module.exports = function serve() {
       .post(aasync(({ body }, response) => {
         try {
           const category = aawait(new Category({ id: body.id, name: body.name }));
-          aawait(validate(category));
+          aawait(validator(category));
           const result = aawait(category.save());
           response.status(CREATED).json({ id: result.id, name: result.name });
         } catch (err) {
@@ -74,24 +77,22 @@ module.exports = function serve() {
     app.route('/categories/:id')
       .put(aasync(({ params, body }, response) => {
         try {
+          // Validate query
+          const $set = { id: body.id, name: body.name };
+          aawait(validator(new Category($set)));
+
           // Look for existing document
-          const findOneQuery = Category.findOne({ id: params.id });
-          const category = aawait(promisify(findOneQuery.exec.bind(findOneQuery))());
+          const category = aawait(executor(Category.findOne({ id: params.id })));
           if (!category) {
             response.status(NOT_FOUND).json();
             return;
           }
 
-          const $set = { id: body.id, name: body.name };
-          aawait(validate(new Category($set)));
-
           // Update document
-          const updateQuery = Category.update({ _id: category._id }, { $set }); // eslint-disable-line
-          aawait(promisify(updateQuery.exec.bind(updateQuery))());
+          aawait(executor(Category.update({ _id: category._id }, { $set }))); // eslint-disable-line
 
           // Retreive updated document
-          const updatedDocumentQuery = Category.findOne({ _id: category._id }); // eslint-disable-line
-          const result = aawait(promisify(updatedDocumentQuery.exec.bind(updatedDocumentQuery))());
+          const result = aawait(executor(Category.findOne({ _id: category._id }))); // eslint-disable-line
 
           response.status(OK).json({ id: result.id, name: result.name });
         } catch (err) {
@@ -100,8 +101,7 @@ module.exports = function serve() {
       }))
       .delete(aasync(({ params }, response) => {
         try {
-          const query = Category.findOne({ id: params.id });
-          const category = aawait(promisify(query.exec.bind(query))());
+          const category = aawait(executor(Category.findOne({ id: params.id })));
           if (!category) {
             response.status(NOT_FOUND).json();
             return;
