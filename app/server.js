@@ -1,3 +1,4 @@
+const { async: aasync, await: aawait } = require('asyncawait');
 const { promisify } = require('bluebird');
 const bodyParser = require('body-parser');
 const express = require('express');
@@ -31,6 +32,10 @@ function errorFormatter(response) {
   };
 }
 
+function validate(document) {
+  return promisify(document.validate.bind(document))();
+}
+
 // Express
 module.exports = function serve() {
   return setupMongoose().then(({ db, models }) => new Promise(resolve => {
@@ -45,74 +50,68 @@ module.exports = function serve() {
     const { Category } = models;
 
     app.route('/categories')
-      .get((request, response) => {
-        Promise.resolve()
-          .then(() => {
-            const query = Category.find({}).sort({ name: 1 });
-            return promisify(query.exec.bind(query))();
-          })
-          .then(results => {
-            const categories = results.map(result => ({ id: result.id, name: result.name }));
-            response.status(OK).json(categories);
-          })
-          .catch(errorFormatter(response));
-      })
-      .post((request, response) => {
-        Promise.resolve(request.body)
-          .then(payload => new Category({ id: payload.id, name: payload.name }))
-          .then(category => promisify(category.validate.bind(category))().then(() => category))
-          .then(category => category.save())
-          .then(result => response.status(CREATED).json({ id: result.id, name: result.name }))
-          .catch(errorFormatter(response));
-      });
+      .get(aasync((_, response) => {
+        try {
+          const query = Category.find({}).sort({ name: 1 });
+          const results = aawait(promisify(query.exec.bind(query))());
+          const categories = results.map(result => ({ id: result.id, name: result.name }));
+          response.status(OK).json(categories);
+        } catch (err) {
+          errorFormatter(response)(err);
+        }
+      }))
+      .post(aasync(({ body }, response) => {
+        try {
+          const category = aawait(new Category({ id: body.id, name: body.name }));
+          aawait(validate(category));
+          const result = aawait(category.save());
+          response.status(CREATED).json({ id: result.id, name: result.name });
+        } catch (err) {
+          errorFormatter(response)(err);
+        }
+      }));
 
     app.route('/categories/:id')
-      .put((request, response) => {
-        Promise.resolve([request.params, request.body])
-          .then(([params, payload]) => {
-            const query = Category.findOne({ id: params.id });
-            return Promise.all([
-              promisify(query.exec.bind(query))(),
-              payload,
-            ]);
-          })
-          .then(([existingCategory, payload]) => {
-            const category = new Category({ id: payload.id, name: payload.name });
-            return promisify(category.validate.bind(category))()
-              .then(() => ([existingCategory, payload]));
-          })
-          .then(([category, payload]) => {
-            if (!category) {
-              return response.status(NOT_FOUND).json();
-            }
-            const query = Category.update(
-              { _id: category._id }, // eslint-disable-line no-underscore-dangle
-              { $set: { id: payload.id, name: payload.name } }
-            );
-            return promisify(query.exec.bind(query))()
-              .then(() => {
-                const q = Category.findOne({ _id: category._id }); // eslint-disable-line
-                return promisify(q.exec.bind(q))();
-              })
-              .then(result => response.status(OK).json({ id: result.id, name: result.name }));
-          })
-          .catch(errorFormatter(response));
-      })
-      .delete((request, response) => {
-        Promise.resolve(request.params)
-          .then(params => {
-            const query = Category.findOne({ id: params.id });
-            return promisify(query.exec.bind(query))();
-          })
-          .then(category => {
-            if (!category) {
-              return response.status(NOT_FOUND).json();
-            }
-            return category.remove()
-              .then(() => response.status(NO_CONTENT).json());
-          })
-          .catch(errorFormatter(response));
-      });
+      .put(aasync(({ params, body }, response) => {
+        try {
+          // Look for existing document
+          const findOneQuery = Category.findOne({ id: params.id });
+          const category = aawait(promisify(findOneQuery.exec.bind(findOneQuery))());
+          if (!category) {
+            response.status(NOT_FOUND).json();
+            return;
+          }
+
+          const $set = { id: body.id, name: body.name };
+          aawait(validate(new Category($set)));
+
+          // Update document
+          const updateQuery = Category.update({ _id: category._id }, { $set }); // eslint-disable-line
+          aawait(promisify(updateQuery.exec.bind(updateQuery))());
+
+          // Retreive updated document
+          const updatedDocumentQuery = Category.findOne({ _id: category._id }); // eslint-disable-line
+          const result = aawait(promisify(updatedDocumentQuery.exec.bind(updatedDocumentQuery))());
+
+          response.status(OK).json({ id: result.id, name: result.name });
+        } catch (err) {
+          errorFormatter(response)(err);
+        }
+      }))
+      .delete(aasync(({ params }, response) => {
+        try {
+          const query = Category.findOne({ id: params.id });
+          const category = aawait(promisify(query.exec.bind(query))());
+          if (!category) {
+            response.status(NOT_FOUND).json();
+            return;
+          }
+          aawait(category.remove());
+          response.status(NO_CONTENT).json();
+        } catch (err) {
+          errorFormatter(response)(err);
+        }
+      }));
 
     const { port } = config;
     const server = app.listen(port, () => {
