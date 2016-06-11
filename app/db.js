@@ -7,10 +7,7 @@ const config = require('./config');
 // MongoDB
 module.exports = function startMongoose(mongo = mongoose) {
   return new Promise((resolve, reject) => {
-    const { mongodb } = config;
-
-    const mongoUrl = `mongodb://${mongodb.host}/${mongodb.db}`;
-    const db = mongo.createConnection(mongoUrl);
+    const db = mongo.createConnection(config.db);
 
     const models = fromPairs(
       toPairs(schemas).map(
@@ -24,7 +21,7 @@ module.exports = function startMongoose(mongo = mongoose) {
     });
 
     db.once('open', () => {
-      info(`Connected to MongoDB at ${mongoUrl}`);
+      info(`Connected to MongoDB at ${config.db}`);
       resolve({ db, models });
     });
   });
