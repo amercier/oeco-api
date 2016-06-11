@@ -1,7 +1,8 @@
+const { green, red } = require('chalk');
 const { fromPairs, toPairs } = require('lodash');
 const mongoose = require('mongoose');
 const schemas = require('./schemas');
-const { info, error } = require('./console');
+const { error, success } = require('./console');
 const config = require('./config');
 
 // MongoDB
@@ -16,12 +17,12 @@ module.exports = function startMongoose(mongo = mongoose) {
     );
 
     db.once('error', err => {
-      error('MongoDB connection error:', err);
+      error(`MongoDB connection error: ${red(err)}`, 'MongoDB');
       reject(err);
     });
 
     db.once('open', () => {
-      info(`Connected to MongoDB at ${config.db}`);
+      success(`Connected to MongoDB at ${green(config.db)}`, 'MongoDB');
       resolve({ db, models });
     });
   });

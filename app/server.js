@@ -1,9 +1,10 @@
 const { async: aasync, await: aawait } = require('asyncawait');
 const { promisify } = require('bluebird');
+const { green } = require('chalk');
 const bodyParser = require('body-parser');
 const express = require('express');
 const { partialRight } = require('lodash');
-const { info } = require('./console');
+const { success } = require('./console');
 const config = require('./config');
 const {
   OK, CREATED, NO_CONTENT, BAD_REQUEST, NOT_FOUND, CONFLICT, INTERNAL_SERVER_ERROR,
@@ -101,7 +102,7 @@ module.exports = function startExpress(models) {
 
     const { port } = config;
     const server = app.listen(port, () => {
-      info(`Application listening on port ${server.address().port}...`);
+      success(`Application listening on port ${green(port)}`, 'Express');
       resolve(server);
     });
   });
