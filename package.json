@@ -8,12 +8,13 @@
     "test": "export NODE_ENV=test; npm run lint && rimraf coverage && nyc npm run mocha",
     "watch": "NODE_ENV=development; node-dev server.js"
   },
-  "main": "app/server.js",
+  "main": "app/index.js",
   "dependencies": {
     "asyncawait": "^1.0.3",
     "bluebird": "^3.4.0",
     "body-parser": "^1.15.1",
     "express": "^4.13.4",
+    "extendable-error": "^0.1.4",
     "http-status-codes": "^1.0.6",
     "lodash": "^4.13.1",
     "mongoose": "^4.4.19",

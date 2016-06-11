@@ -59,13 +59,13 @@ describe('/categories', () => {
       it(`returns 400 Bad Request if ${key} is missing`, () => supertest(context.server)
         .post('/categories')
         .send(omit(category, [key]))
-        .expect(BAD_REQUEST, { error: `missing_${key}` })
+        .expect(BAD_REQUEST, { message: `missing_${key}` })
       );
 
       it(`returns 400 Bad Request if ${key} is empty`, () => supertest(context.server)
         .post('/categories')
         .send(defaults({ [key]: '' }, category))
-        .expect(BAD_REQUEST, { error: `missing_${key}` })
+        .expect(BAD_REQUEST, { message: `missing_${key}` })
       );
     });
 
@@ -78,7 +78,7 @@ describe('/categories', () => {
         it(`returns 409 Conflict if ${key} already exists`, () => supertest(context.server)
           .post('/categories')
           .send(defaults({ [key]: existingCategory[key] }, category))
-          .expect(CONFLICT, { error: `existing_${key}` })
+          .expect(CONFLICT, { message: `existing_${key}` })
         );
       });
     });
@@ -106,13 +106,13 @@ describe('/categories', () => {
       it(`returns 400 Bad Request if ${key} is missing`, () => supertest(context.server)
         .put(`/categories/${category.id}`)
         .send(omit(editedCategory, [key]))
-        .expect(BAD_REQUEST, { error: `missing_${key}` })
+        .expect(BAD_REQUEST, { message: `missing_${key}` })
       );
 
       it(`returns 400 Bad Request if ${key} is empty`, () => supertest(context.server)
         .put(`/categories/${category.id}`)
         .send(defaults({ [key]: '' }, editedCategory))
-        .expect(BAD_REQUEST, { error: `missing_${key}` })
+        .expect(BAD_REQUEST, { message: `missing_${key}` })
       );
     });
 
@@ -121,7 +121,7 @@ describe('/categories', () => {
       it(`returns 409 Conflict if ${key} already exists`, () => supertest(context.server)
         .put(`/categories/${category.id}`)
         .send(defaults({ [key]: category[key] }, editedCategory))
-        .expect(CONFLICT, { error: `existing_${key}` })
+        .expect(CONFLICT, { message: `existing_${key}` })
       );
     });
   });

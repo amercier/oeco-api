@@ -5,7 +5,7 @@ const { info, error } = require('./console');
 const config = require('./config');
 
 // MongoDB
-module.exports = function setupMongoose(mongo = mongoose) {
+module.exports = function startMongoose(mongo = mongoose) {
   return new Promise((resolve, reject) => {
     const { mongodb } = config;
 
