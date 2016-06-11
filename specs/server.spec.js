@@ -1,22 +1,13 @@
-const { expect } = require('code');
 const supertest = require('supertest');
-const serverFactory = require('../index');
-
-let server;
-
-beforeEach(() => {
-  server = serverFactory();
-});
-
-afterEach(() => {
-  server.close();
-});
+const { setup } = require('./helpers');
 
 describe('/', () => {
+  const context = setup();
+
   describe('GET /', () => {
-    it('returns 200 OK', () => supertest(server).get('/').expect(200));
-    it('returns "Hello World!"', () => supertest(server).get('/').then(res => {
-      expect(res.body).to.deep.equal('Hello World!');
-    }));
+    it('displays "Hello World!"', () => supertest(context.server)
+      .get('/')
+      .expect(200, 'Hello World!\n')
+    );
   });
 });
