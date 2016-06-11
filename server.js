@@ -1,2 +1,1 @@
-const serve = require('.');
-serve();
+require('.').start();

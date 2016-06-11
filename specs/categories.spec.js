@@ -59,13 +59,13 @@ describe('/categories', () => {
       it(`returns 400 Bad Request if ${key} is missing`, () => supertest(context.server)
         .post('/categories')
         .send(omit(category, [key]))
-        .expect(BAD_REQUEST, { error: `missing_${key}` })
+        .expect(BAD_REQUEST, { message: `missing_${key}` })
       );
 
       it(`returns 400 Bad Request if ${key} is empty`, () => supertest(context.server)
         .post('/categories')
         .send(defaults({ [key]: '' }, category))
-        .expect(BAD_REQUEST, { error: `missing_${key}` })
+        .expect(BAD_REQUEST, { message: `missing_${key}` })
       );
     });
 
@@ -78,9 +78,51 @@ describe('/categories', () => {
         it(`returns 409 Conflict if ${key} already exists`, () => supertest(context.server)
           .post('/categories')
           .send(defaults({ [key]: existingCategory[key] }, category))
-          .expect(CONFLICT, { error: `existing_${key}` })
+          .expect(CONFLICT, { message: `existing_${key}` })
         );
       });
+    });
+  });
+
+  describe('PUT /categories/:id', () => {
+    const category = { id: 'existing-category', name: 'Existing Category' };
+    const editedCategory = { id: 'edited-category', name: 'Edited Category' };
+    beforeEach(() => new Category(category).save());
+
+    it('updates the category', () => supertest(context.server)
+      .put(`/categories/${category.id}`)
+      .send(editedCategory)
+      .expect(OK, editedCategory)
+    );
+
+    it('returns 404 Not Found if the category doesn\'t exist', () => supertest(context.server)
+      .put('/categories/unexisting-category')
+      .send(editedCategory)
+      .expect(NOT_FOUND, '')
+    );
+
+    // Required fields
+    ['id', 'name'].forEach(key => {
+      it(`returns 400 Bad Request if ${key} is missing`, () => supertest(context.server)
+        .put(`/categories/${category.id}`)
+        .send(omit(editedCategory, [key]))
+        .expect(BAD_REQUEST, { message: `missing_${key}` })
+      );
+
+      it(`returns 400 Bad Request if ${key} is empty`, () => supertest(context.server)
+        .put(`/categories/${category.id}`)
+        .send(defaults({ [key]: '' }, editedCategory))
+        .expect(BAD_REQUEST, { message: `missing_${key}` })
+      );
+    });
+
+    // Unique fields
+    ['id', 'name'].forEach(key => {
+      it(`returns 409 Conflict if ${key} already exists`, () => supertest(context.server)
+        .put(`/categories/${category.id}`)
+        .send(defaults({ [key]: category[key] }, editedCategory))
+        .expect(CONFLICT, { message: `existing_${key}` })
+      );
     });
   });
 
